@@ -10,6 +10,7 @@ import TableContainer from '@mui/material/TableContainer'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import Paper from '@mui/material/Paper'
+import { Avatar } from '@mui/material'
 
 function getWeather() {
   return fetch('https://api.weather.gov/gridpoints/LWX/89,70/forecast/hourly').then((data) => data.json())
@@ -17,19 +18,17 @@ function getWeather() {
 
 function formatDateTime(dateTime) {
   const date = new Date(dateTime)
-  // const monthIndex = getWholeDate.getMonth()
-  // const day = getWholeDate.getDate()
-  // const year = getWholeDate.getFullYear()
-  // const hours = getWholeDate.getHours()
-  // const minutes = getWholeDate.getMinutes(2)
-  // return `${hours}:${minutes}`
   return date.toLocaleString('en-us', { hour: '2-digit', minute: '2-digit' })
 }
 
-function BasicTable() {
-  console.log(`weatherDataShort: ${weatherDataShort}`)
+function BasicTable(props) {
+  // console.log(`weatherDataShort: ${weatherDataShort}`)
+  // const rows = todayArr(weatherDataShort.properties.periods)
 
-  const rows = weatherDataShort.properties.periods
+  console.log('props.weatherData:', props.weatherData)
+  if (!props.weatherData) return
+  const rows = todayArr(props?.weatherData?.properties?.periods) || []
+  console.log('rows:', rows)
 
   return (
     <TableContainer component={Paper}>
@@ -43,6 +42,7 @@ function BasicTable() {
             <TableCell align="right">Wind Speed</TableCell>
             <TableCell align="right">Wind Direction</TableCell>
             <TableCell align="right">Forecast</TableCell>
+            <TableCell align="right"></TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -52,10 +52,25 @@ function BasicTable() {
                 {formatDateTime(row.startTime)}
               </TableCell>
               <TableCell align="right">{formatDateTime(row.endTime)}</TableCell>
-              <TableCell align="right">{`${row.temperature} ${row.temperatureUnit}`}</TableCell>
+              <TableCell align="right">{`${row.temperature}°${row.temperatureUnit}`}</TableCell>
               <TableCell align="right">{row.windSpeed}</TableCell>
               <TableCell align="right">{row.windDirection}</TableCell>
               <TableCell align="right">{row.shortForecast}</TableCell>
+              <TableCell align="right">
+                <Avatar src={row.icon} />
+              </TableCell>
+              {/* <TableCell align="right">
+                <span
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {row.shortForecast}
+                </span>
+                <img src={row.icon} />
+              </TableCell> */}
             </TableRow>
           ))}
         </TableBody>
@@ -173,7 +188,7 @@ export const Sales = (props) => {
             Last 7 days
           </Button>
         }
-        title="Today's Weather Forecast"
+        title="Today's Weather"
       />
       <Divider />
       <CardContent>
@@ -189,8 +204,8 @@ export const Sales = (props) => {
           />
         </Box> */}
         <div className="wrapper">
-          <h1>Hourly</h1>
-          <BasicTable />
+          <h1>Hourly Forecast</h1>
+          {!!weather && <BasicTable weatherData={weather} />}
 
           {/* {JSON.stringify(weather)} */}
           {/* <ul>
@@ -216,13 +231,23 @@ export const Sales = (props) => {
   )
 }
 
+const isToday = (date) => {
+  const today = new Date()
+  const someDate = new Date(date)
+  return someDate.getDate() == today.getDate() && someDate.getMonth() == today.getMonth() && someDate.getFullYear() == today.getFullYear()
+}
+
+function todayArr(data) {
+  return data?.filter((time) => isToday(time.startTime))
+}
+
 const weatherDataShort = {
   properties: {
     periods: [
       {
         number: 1,
         name: '',
-        startTime: '2022-09-27T10:00:00-04:00',
+        startTime: '2022-09-29T10:00:00-04:00',
         endTime: '2022-09-27T11:00:00-04:00',
         isDaytime: true,
         temperature: 63,
